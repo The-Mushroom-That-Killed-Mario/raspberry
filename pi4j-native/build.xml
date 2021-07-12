@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="pi4j-native" default="build-with-docker" basedir=".">
+
+    <!-- determine if running on MacOS or Linux-->
+    <condition property="isUnix">
+        <os family="unix" />
+    </condition>
+
+    <!-- determine if running on Windows-->
+    <condition property="isWindows">
+        <os family="windows" />
+    </condition>
+
+    <!-- prepare docker arguments if running on MacOS or Linux-->
+    <target name="docker-prep-unix" if="isUnix">
+        <exec executable="id" failifexecutionfails="false" failonerror="false" outputproperty="uid">
+            <arg value="-u"/>
+        </exec>
+        <exec executable="id" failifexecutionfails="false" failonerror="false" outputproperty="gid">
+            <arg value="-g"/>
+        </exec>
+        <property name="docker.user.argument" value="--user ${uid}:${gid}"/>
+        <echo message=" UNIX-BASED [UID]  : ${uid}"/>
+        <echo message=" UNIX-BASED [GID]  : ${gid}"/>
+        <echo message=" DOCKER ARG [USER] : ${docker.user.argument}"/>
+    </target>
+
+    <!-- prepare docker arguments if running on Windows -->
+    <target name="docker-prep-windows" if="isWindows">
+        <property name="docker.user.argument" value=""/>
+    </target>
+
+    <!-- ********************************************************************************** -->
+    <!-- MACRO BUILD STEPS FOR LOCAL & CROSS-COMPILED BUILDS -->
+    <!-- ********************************************************************************** -->
+    <macrodef name="pi4j-native-prepare-build-target">
+        <attribute name="args" default=""/>
+        <sequential>
+            <echo message="----------------------------------------------------"/>
+            <echo message="Pi4J PREPARE NATIVE LIBRARY BUILD TARGET"/>
+            <echo message="----------------------------------------------------"/>
+
+            <!-- ensure the target directory is empty -->
+            <delete dir="${project.build.directory}/native" includeemptydirs="true"/>
+
+            <!-- ensure the target directory exists -->
+            <mkdir dir="${project.build.directory}/native"/>
+            <mkdir dir="${project.build.directory}/native/lib"/>
+
+            <!-- copy all the necessary source files to target directory -->
+            <copy todir="${project.build.directory}/native">
+                <fileset dir="src/main/native"/>
+            </copy>
+
+            <!-- ensure build shell scripts are executable -->
+            <chmod dir="${project.build.directory}/native" failonerror="true" perm="ugo+rx" includes="**/*.sh"/>
+        </sequential>
+    </macrodef>
+
+    <!-- ********************************************************************************** -->
+    <!-- MACRO BUILD STEPS FOR LOCAL & CROSS-COMPILED BUILDS -->
+    <!-- ********************************************************************************** -->
+    <macrodef name="pi4j-native-build-local">
+        <attribute name="args" default=""/>
+        <sequential>
+            <echo message="----------------------------------------------------"/>
+            <echo message="Pi4J NATIVE LIBRARY BUILD [INVOKED]"/>
+            <echo message=" -- BUILD USING CROSS-COMPILER TOOLCHAINS"/>
+            <echo message="----------------------------------------------------"/>
+
+            <!-- perform build using shell script -->
+            <exec dir="${project.build.directory}/native" failonerror="true" executable="/bin/bash">
+                <arg line="build.sh @{args}"/>
+            </exec>
+        </sequential>
+    </macrodef>
+
+    <!-- ********************************************************************************** -->
+    <!-- MACRO BUILD STEPS FOR DOCKER CROSS-COMPILED BUILDS -->
+    <!-- ********************************************************************************** -->
+
+    <macrodef name="pi4j-native-build-docker">
+        <attribute name="args" default=""/>
+        <attribute name="builder.version" default="latest"/>
+
+        <sequential>
+            <echo message="----------------------------------------------------"/>
+            <echo message="Pi4J NATIVE LIBRARY BUILD [INVOKED]"/>
+            <echo message=" -- BUILD USING DOCKER CROSS-COMPILER CONTAINER (@{builder.version})"/>
+            <echo message="----------------------------------------------------"/>
+
+            <!-- make sure to get the latest pi4j docker images from DockerHub -->
+            <exec dir="${project.build.directory}/native" failonerror="true" executable="docker">
+                <!-- perform PULL on the build container -->
+                <arg value="pull"/>
+
+                <!-- get the latest Pi4J cross-compiler container -->
+                <arg value="pi4j/pi4j-builder-native:@{builder.version}"/>
+            </exec>
+
+            <!-- perform build using docker command -->
+            <exec dir="${project.build.directory}/native" failonerror="true" executable="docker">
+                <!-- perform RUN on the build container -->
+                <arg value="run"/>
+
+                <!-- map the 'target/native' build directory as a docker volume mounted to '/build' -->
+                <arg line="${docker.user.argument}" />
+
+                <!-- map the 'target/native' build directory as a docker volume mounted to '/build' -->
+                <arg value="--volume"/>
+                <arg value="${project.build.directory}/native:/build"/>
+
+                <!-- remove the build container upon completion -->
+                <arg value="--rm"/>
+
+                <!-- use the Pi4J cross-compiler container -->
+                <arg value="pi4j/pi4j-builder-native:@{builder.version}"/>
+            </exec>
+
+        </sequential>
+    </macrodef>
+
+    <!-- ********************************************************************************** -->
+    <!-- MAVEN INITIATED BUILD TARGETS -->
+    <!-- ********************************************************************************** -->
+
+    <!-- this target is used when building maven project using the ARM cross-compiler -->
+    <target name="build-with-cross-compile">
+        <echo message="Building native libpi4j shared library using CROSS-COMPILER (${pi4j.builder.version})"/>
+
+        <!-- prepare build target directory; clean & copy sources -->
+        <pi4j-native-prepare-build-target/>
+
+        <!-- perform local build using cross-compiler toolchains -->
+        <pi4j-native-build-local/>
+    </target>
+
+    <!-- this target is used when building maven project using the Docker ARM cross-compiler container -->
+    <target name="build-with-docker" depends="docker-prep-unix,docker-prep-windows">
+        <echo message="Building native libpi4j shared library using DOCKER-BUILDER (${pi4j.builder.version})"/>
+
+        <!-- prepare build target directory; clean & copy sources -->
+        <pi4j-native-prepare-build-target/>
+
+        <!-- perform build using docker container -->
+        <pi4j-native-build-docker builder.version="${pi4j.builder.version}"/>
+    </target>
+</project>

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+case "$1" in
+   configure)
+      ln --force --symbolic /opt/pi4j/bin/pi4j /usr/bin/pi4j
+   ;;
+   abort-upgrade|abort-remove|abort-deconfigure)
+      echo "$1"
+    ;;
+   *)
+      echo "postinst called with unknown argument \`\$1'" >&2
+      exit 0
+   ;;
+esac
+
+# SET EXECUTABLE PERMISSIONS FOR EXAMPLE BUILD SCRIPTS
+chmod -f -R a+x /opt/pi4j/examples/build
+
+# SET EXECUTABLE PERMISSIONS FOR EXAMPLE RUN SCRIPTS
+chmod -f -R a+x /opt/pi4j/examples/run
