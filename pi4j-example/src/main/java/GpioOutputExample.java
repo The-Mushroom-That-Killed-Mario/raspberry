@@ -70,13 +70,45 @@ public class GpioOutputExample {
 
         // by default we will use gpio pin #01; however, if an argument
         // has been provided, then lookup the pin by address
-        Pin pin = CommandArgumentParser.getPin(
+        Pin pin1 = CommandArgumentParser.getPin(
                 RaspiPin.class,    // pin provider class to obtain pin instance from
-                RaspiPin.GPIO_01,  // default pin if no pin argument found
+                RaspiPin.GPIO_07,  // default pin if no pin argument found
                 args);             // argument array to search in
 
+        Pin pin2 = CommandArgumentParser.getPin(
+                RaspiPin.class,    // pin provider class to obtain pin instance from
+                RaspiPin.GPIO_00,  // default pin if no pin argument found
+                args);
+
+        Pin pin3 = CommandArgumentParser.getPin(
+                RaspiPin.class,    // pin provider class to obtain pin instance from
+                RaspiPin.GPIO_02,  // default pin if no pin argument found
+                args);
+
+        Pin pin4 = CommandArgumentParser.getPin(
+                RaspiPin.class,    // pin provider class to obtain pin instance from
+                RaspiPin.GPIO_03,  // default pin if no pin argument found
+                args);
+
+        Pin pin5 = CommandArgumentParser.getPin(
+                RaspiPin.class,    // pin provider class to obtain pin instance from
+                RaspiPin.GPIO_21,  // default pin if no pin argument found
+                args);
+        Pin pin6 = CommandArgumentParser.getPin(
+                RaspiPin.class,    // pin provider class to obtain pin instance from
+                RaspiPin.GPIO_22,  // default pin if no pin argument found
+                args);
+        Pin pin7 = CommandArgumentParser.getPin(
+                RaspiPin.class,    // pin provider class to obtain pin instance from
+                RaspiPin.GPIO_23,  // default pin if no pin argument found
+                args);
+        Pin pin8 = CommandArgumentParser.getPin(
+                RaspiPin.class,    // pin provider class to obtain pin instance from
+                RaspiPin.GPIO_24,  // default pin if no pin argument found
+                args);
+
         // provision gpio pin as an output pin and turn on
-        final GpioPinDigitalOutput output = gpio.provisionDigitalOutputPin(pin, "My Output", PinState.HIGH);
+        final GpioPinDigitalOutput output = gpio.provisionDigitalOutputPin(pin1, "My Output", PinState.HIGH);
 
         // set shutdown state for this pin: keep as output pin, set to low state
         output.setShutdownOptions(false, PinState.LOW);

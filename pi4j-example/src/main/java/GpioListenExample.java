@@ -75,23 +75,24 @@ public class GpioListenExample {
         // has been provided, then lookup the pin by address
         Pin pin = CommandArgumentParser.getPin(
                 RaspiPin.class,    // pin provider class to obtain pin instance from
-                RaspiPin.GPIO_01,  // default pin if no pin argument found
+                RaspiPin.GPIO_07,  // default pin if no pin argument found
                 args);             // argument array to search in
 
         // by default we will use gpio pin PULL-UP; however, if an argument
         // has been provided, then use the specified pull resistance
-        PinPullResistance pull = CommandArgumentParser.getPinPullResistance(
-                PinPullResistance.PULL_UP,  // default pin pull resistance if no pull argument found
-                args);                      // argument array to search in
+
+//        PinPullResistance pull = CommandArgumentParser.getPinPullResistance(
+//                PinPullResistance.PULL_UP,  // default pin pull resistance if no pull argument found
+//                args);                      // argument array to search in
 
         // provision gpio pin #02 as an input pin with its internal pull resistor set to UP or DOWN
-        final GpioPinDigitalInput myButton = gpio.provisionDigitalInputPin(pin, pull);
+        final GpioPinDigitalInput myButton = gpio.provisionDigitalInputPin(pin);
 
         // unexport the GPIO pin when program exits
         myButton.setShutdownOptions(true);
 
         // prompt user that we are ready
-        console.println(" ... Successfully provisioned [" + pin + "] with PULL resistance = [" + pull + "]");
+        console.println(" ... Successfully provisioned [" + pin + "] with PULL resistance = [ + pull + ]");
         console.emptyLine();
         console.box("Please complete the [" + pin + "] circuit and see",
                 "the listener feedback here in the console.");

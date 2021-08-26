@@ -61,6 +61,7 @@ public class BlinkTriggerGpioExample {
         // setup gpio pins #04 an output pins and make sure they are all LOW at startup
         final GpioPinDigitalOutput myLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04, PinState.LOW);
 
+        String name = "HIGH";
         // create a gpio control trigger on the input pin ; when the input goes HIGH, turn on blinking
         myButton.addTrigger(new GpioBlinkStateTrigger(PinState.HIGH, myLed, 250));
 
